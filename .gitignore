@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+
+# HuggingFace & Trained Models
+kanfai-360m/
+kanfai-360m-checkpoints/
+*.safetensors
+*.bin
+*.h5
+*.msgpack
+
+# Rust / Cargo
+emotion_engine/target/
+**/*.rs.bk
+Cargo.lock
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

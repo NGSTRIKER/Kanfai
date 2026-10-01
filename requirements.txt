@@ -1,0 +1,8 @@
+maturin>=1.0
+torch
+transformers
+matplotlib
+numpy
+datasets
+peft
+trl
