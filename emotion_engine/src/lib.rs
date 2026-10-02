@@ -91,7 +91,7 @@ impl EmotionState {
         };
 
         // 1. anger n threat stuff
-        if contains_any(&["hate", "kill", "bad", "threat", "angry", "stupid", "error", "fail", "urgent"]) {
+        if contains_any(&["hate", "kill", "bad", "threat", "angry", "stupid", "error", "fail", "urgent", "fuck", "ok", "ahh", "hell", "idiot", "clanker", "fault", "worst", "awful", "dumb", "mad", "shut", "quiet"]) {
             self.cortisol = (self.cortisol + 0.4).min(1.0);
             self.adrenaline = (self.adrenaline + 0.5).min(1.0);
             self.norepinephrine = (self.norepinephrine + 0.4).min(1.0);
@@ -101,7 +101,7 @@ impl EmotionState {
         }
 
         // 2. friendship n bonding
-        if contains_any(&["good", "love", "great", "friend", "happy", "thanks", "together", "we", "hug"]) {
+        if contains_any(&["good", "love", "great", "friend", "happy", "thanks", "together", "we", "hug", "fren", "buddy", "lmao", "yayy", "thank", "awesome", "best", "smile", "cute", "warm", "care", "beautiful"]) {
             self.oxytocin = (self.oxytocin + 0.4).min(1.0);
             self.serotonin = (self.serotonin + 0.3).min(1.0);
             self.prolactin = (self.prolactin + 0.3).min(1.0); 
@@ -111,7 +111,7 @@ impl EmotionState {
         }
 
         // 3. big brain focus logic
-        if contains_any(&["why", "how", "explain", "think", "complex", "analyze", "code", "logic", "work", "focus"]) {
+        if contains_any(&["why", "how", "explain", "think", "complex", "analyze", "code", "logic", "work", "focus", "no", "mistake", "debug", "reason", "understand", "system", "theory", "math", "problem", "solve", "calculate", "study"]) {
             self.acetylcholine = (self.acetylcholine + 0.4).min(1.0);
             self.glutamate = (self.glutamate + 0.4).min(1.0);
             self.dopamine = (self.dopamine + 0.1).min(1.0); 
@@ -119,7 +119,7 @@ impl EmotionState {
         }
 
         // 4. sadness n pain (depressed teen vibes)
-        if contains_any(&["sad", "cry", "hurt", "pain", "sorry", "miss", "alone", "lonely"]) {
+        if contains_any(&["sad", "cry", "hurt", "pain", "sorry", "miss", "alone", "lonely", "tragic", "broken", "tears", "grief", "unhappy", "empty", "dark", "depressing", "mourn", "tragedy", "suffer", "regret", "miserable"]) {
             self.endorphin = (self.endorphin + 0.4).min(1.0); 
             self.cortisol = (self.cortisol + 0.3).min(1.0); 
             self.serotonin = (self.serotonin - 0.4).max(0.0);
@@ -127,7 +127,7 @@ impl EmotionState {
         }
 
         // 5. food cravings
-        if contains_any(&["hungry", "eat", "food", "starving", "snack", "craving", "pizza"]) {
+        if contains_any(&["hungry", "eat", "food", "starving", "snack", "craving", "pizza", "burger", "meal", "bite", "chew", "yummy", "delicious", "taste", "famished", "appetite", "swallow", "thirsty", "drink", "starving"]) {
             self.ghrelin = (self.ghrelin + 0.5).min(1.0); 
             self.leptin = (self.leptin - 0.4).max(0.0);
             self.insulin = (self.insulin - 0.3).max(0.0);
@@ -135,7 +135,7 @@ impl EmotionState {
         }
 
         // 6. full n lazy mode
-        if contains_any(&["full", "ate", "relax", "chill", "done", "lazy", "comfortable", "rest"]) {
+        if contains_any(&["full", "ate", "relax", "chill", "done", "lazy", "comfortable", "rest", "content", "satisfied", "stuffed", "couch", "nothing", "slow", "peaceful", "calm", "easy", "breeze", "break", "pause", "unbothered"]) {
             self.leptin = (self.leptin + 0.4).min(1.0); 
             self.insulin = (self.insulin + 0.3).min(1.0);
             self.gaba = (self.gaba + 0.4).min(1.0); 
@@ -145,7 +145,7 @@ impl EmotionState {
         }
 
         // 7. motivation spikes
-        if contains_any(&["want", "desire", "yes", "win", "amazing", "excite", "goal"]) {
+        if contains_any(&["want", "desire", "yes", "win", "amazing", "excite", "goal", "achieve", "succeed", "victory", "triumph", "push", "hard", "power", "strong", "fast", "better", "improve", "hype", "let's", "go"]) {
             self.dopamine = (self.dopamine + 0.4).min(1.0);
             self.dhea = (self.dhea + 0.3).min(1.0); 
             self.endorphin = (self.endorphin + 0.2).min(1.0);
@@ -153,7 +153,7 @@ impl EmotionState {
         }
 
         // 8. sleep trigggers
-        if contains_any(&["tired", "sleep", "night", "boring", "exhausted", "yawn", "bed"]) {
+        if contains_any(&["tired", "sleep", "night", "boring", "exhausted", "yawn", "bed", "snooze", "slumber", "dream", "nap", "sleepy", "dark", "closing", "heavy", "pillow", "blanket", "rest", "fatigue", "weary"]) {
             self.melatonin = (self.melatonin + 0.4).min(1.0);
             self.adenosine = (self.adenosine + 0.3).min(1.0);
             self.gaba = (self.gaba + 0.2).min(1.0);
