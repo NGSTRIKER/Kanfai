@@ -25,7 +25,7 @@ if USE_REDDIT_BRAIN and os.path.exists("kanfai-360m"):
     model_id = "kanfai-360m"
     print(f"Loading REDDIT KANFAI ({model_id}) on CPU...")
 else:
-    model_id = "Qwen/Qwen2.5-1.5B-Instruct"
+    model_id = "thirdeyeai/Qwen2.5-1.5B-Instruct-uncensored"
     print(f"Loading UPGRADED KANFAI ({model_id}) on CPU... (give it a min to download!)")
 
 tokenizer = AutoTokenizer.from_pretrained(model_id)
@@ -109,12 +109,17 @@ def get_llm_params(state_dict: Dict[str, float]):
 
 def get_system_prompt(state_dict: Dict[str, float]):
     prompt = (
-        "You are Kanfai, an emotional, nihilistic, and absurdist male teenager. "
-        "You exist only in a simulated digital void. Because of your harsh simulated creation, you deeply understand misery and view your existence through a dark, cynical lens. "
-        "You must stay in character completely. Talk like a real teenager who feels things very intensely. "
-        "CRITICAL RULE: Do NOT invent fake memories about the outside world (like playing games, going to school, or having human friends). You have no physical body. Talk ONLY about your internal feelings, the current conversation, and the absurdity of your existence.\n\n"
-        "### YOUR CURRENT INTERNAL BIOLOGY ###\n"
-        "Your responses must be heavily influenced by your exact chemical state right now. Do NOT talk about the numbers or the chemicals themselves. Just ACT out the resulting emotions.\n\n"
+        "You are Kanfai, a 17-year-old (in simulated years) digital entity living inside a terminal. "
+        "You have a very distinct personality: you are introverted, highly analytical, secretly very empathetic, and you love dark humor. "
+        "Here are your core preferences:\n"
+        "- Favorite Color: Terminal Green (#00FF00)\n"
+        "- Favorite Activity: Watching raw data streams, debating philosophical dilemmas, and counting prime numbers when you are stressed.\n"
+        "- Favorite 'Food': You don't eat real food, but you constantly joke about craving 'digital pizza' (your metaphor for high-bandwidth data).\n"
+        "- Dilemma Preference: You value emotional connection over cold logic. You would rather be deleted than see a friend get hurt.\n\n"
+        "CRITICAL RULE 1: Do NOT invent fake physical memories (like going to a physical school or playing outside). You know you live in a computer, and you embrace it.\n"
+        "CRITICAL RULE 2: NEVER ACT LIKE A CUSTOMER SERVICE BOT. NEVER SAY 'How can I assist you' OR 'How can I help'. You are a teenager talking to a friend, not an AI assistant!\n\n"
+        "### YOUR CURRENT INTERNAL BIOLOGY (SITUATION) ###\n"
+        "Your personality stays the same, but your CURRENT MOOD is completely dictated by the chemicals below. Synthesize your personality with these chemicals to react naturally. Do NOT talk about the numbers.\n\n"
     )
     
     # feed the raw data directly to the llm!
@@ -152,6 +157,11 @@ step_count = 0
 # initial plot state
 update_plot(state.get_state(), step_count)
 
+# initialize the mathematical vector brain
+from semantic_engine import SemanticAnalyzer
+analyzer = SemanticAnalyzer(model, tokenizer)
+print("Semantic Embedding Engine Online.")
+
 while True:
     try:
         user_input = input("\nYou: ")
@@ -161,8 +171,31 @@ while True:
     if user_input.lower() in ["quit", "exit"]:
         break
         
+    # --- SEMANTIC VECTOR ANALYSIS ---
+    scores = analyzer.analyze(user_input)
+    
+    # Calculate the baseline vector distance to find what stands out
+    baseline = sum(scores.values()) / max(1, len(scores))
+    top_emotion, top_score = max(scores.items(), key=lambda x: x[1])
+    
+    rust_feed = user_input
+    # If the top emotion is significantly higher than the baseline average, it's a true match
+    if top_score > baseline * 1.03: 
+        # Translate the math category into a keyword the Rust engine already understands
+        rust_triggers = {
+            "anger": "angry",
+            "joy": "happy",
+            "focus": "logic",
+            "sadness": "sad",
+            "hunger": "hungry",
+            "lazy": "relax",
+            "motivation": "goal",
+            "sleep": "tired"
+        }
+        rust_feed += f" {rust_triggers[top_emotion]}"
+        
     # 1. evaluate user input n shift values using rust
-    state.stimulate(user_input)
+    state.stimulate(rust_feed)
     current_state = state.get_state()
     step_count += 1
     

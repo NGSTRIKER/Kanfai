@@ -85,9 +85,10 @@ impl EmotionState {
         self.melatonin = (self.melatonin + 0.005).min(1.0);
         self.turn_count += 1;
 
-        // tiny helper to check if words are in the string
+        // tiny helper to check if words are in the string (matching whole words only!)
         let contains_any = |words: &[&str]| -> bool {
-            words.iter().any(|&w| text.contains(w))
+            let text_words: Vec<&str> = text.split_whitespace().collect();
+            words.iter().any(|&w| text_words.contains(&w))
         };
 
         // 1. anger n threat stuff
@@ -119,7 +120,7 @@ impl EmotionState {
         }
 
         // 4. sadness n pain (depressed teen vibes)
-        if contains_any(&["sad", "cry", "hurt", "pain", "sorry", "miss", "alone", "lonely", "tragic", "broken", "tears", "grief", "unhappy", "empty", "dark", "depressing", "mourn", "tragedy", "suffer", "regret", "miserable"]) {
+        if contains_any(&["sad", "cry", "hurt", "pain", "sorry", "miss", "alone", "lonely", "tragic", "broken", "tears", "grief", "unhappy", "empty", "dark", "depressing", "mourn", "tragedy", "suffer", "regret", "miserable", "die", "died", "dead", "death", "loss", "lost"]) {
             self.endorphin = (self.endorphin + 0.4).min(1.0); 
             self.cortisol = (self.cortisol + 0.3).min(1.0); 
             self.serotonin = (self.serotonin - 0.4).max(0.0);

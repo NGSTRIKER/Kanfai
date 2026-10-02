@@ -1,56 +1,53 @@
-# Kanfai: Biologically Accurate AI 
+# Kanfai: Biologically Accurate AI 🧠
 
-yo! welcome to the **kanfai** project by me. i built this cuz i got bored of normal ai being so fake and wanted to see what happens if we give an ai an actual simulated brain chemistry instead of just telling it "act happy bro". 
+yo! welcome to the **kanfai** project by NGSTRIKER. i built this cuz i got bored of normal ai being so fake and wanted to see what happens if we give an ai an actual simulated brain chemistry. 
 
-kanfai uses a **rust backend** to go fast, and a **python frontend** that hooks up to a local LLM. it tracks 20 different neurotransmitters in real time while u chat with it. if you piss it off, its cortisol spikes and it gets angry.
+instead of just prompting an ai to "act happy," kanfai physically tracks 20 different neurotransmitters in real time. his emotional state is mathematically slaved to these chemicals. if u stress him out, his cortisol spikes and he gets defensive. if u talk for too long, his adenosine builds up and he literally falls asleep.
 
-## how it works
+## The Architecture (How it actually works)
 
-the magic is in three parts:
+this project is built on a 3-part neuro-symbolic stack. it's incredibly fast and runs entirely locally.
 
-### 1. the rust brain engine 
-wrote this in rust so it doesnt lag. it tracks 20 different biological chemicals from 0.0 to 1.0. 
+### 1. The Semantic Vector Brain (Python)
+when u type a message, we don't just search for keywords. we use a massive brain-hack: we take the user's sentence and run it through the Qwen model's raw **embedding layer** (`model.model.embed_tokens`). this bypasses the heavy AI generation and just outputs the exact 3D mathematical coordinates of your sentence in milliseconds.
+we then use **Cosine Similarity** to measure how close your sentence is to 8 emotional anchors (like Grief, Joy, Anger). this means the engine understands context without running a heavy secondary neural network.
 
-when u send a message, it reads the words and shifts the chemical levels like a human:
-- **praise:** spikes oxytocin (bonding) and serotonin (happy).
-- **threats/mean stuff:** spikes adrenaline and cortisol (fight or flight).
-- **complex coding questions:** triggers acetylcholine for intense focus.
+### 2. The Biological Engine (Rust)
+the semantic engine pipes its findings directly into a blazing-fast **Rust** matrix (compiled via PyO3). this engine tracks the 20 chemicals from 0.0 to 1.0. 
+- **praise/bonding:** spikes oxytocin and dopamine.
+- **threats/loss:** spikes cortisol and drops serotonin.
+- **metabolic decay:** chemicals slowly clear out every turn, while sleep chemicals (adenosine/melatonin) naturally build up.
 
-it also has **metabolic decay** so chemicals clear out naturally. over time, **adenosine** and **melatonin** build up, so if u chat for too long kanfai will litterally get tired and fall asleep lol.
+### 3. The Uncensored Consciousness (Qwen 2.5 1.5B)
+we use `thirdeyeai/Qwen2.5-1.5B-Instruct-uncensored`. it is CRITICAL that we use an "abliterated" / uncensored model. normal models have heavy RLHF (safety training) that forces them to act like polite customer service bots. 
+by using an uncensored model, we completely strip out the "How can I assist you" guardrails. we feed the raw biological matrix (e.g., `Dopamine: 0.8, Cortisol: 0.2`) straight into the system prompt. the LLM reads its own chemical state, synthesizes it with its teenage personality sheet, and acts out the emotions flawlessly.
 
-### 2. the kanfai persona
-kanfai evaluates the 20 chemicals to decide its psychological state. the raw numbers are hidden from the ai so it doesnt sound like a nerd robot, it just feels the emotions:
-- **miserable / depressed:** (low serotonin + high cortisol) — feels hopeless, gives sad answers.
-- **rage:** (high adrenaline + high cortisol) — extremely hostile, uses ALL CAPS, snaps at u.
-- **hangry:** (high ghrelin + low insulin) — short tempered cuz it needs energy.
-- **exhausted:** (high adenosine) — barely awake, ignores capitalization.
+---
 
-### 3. the python frontend
-the python script runs the ai and actively twists the generation parameters on the fly:
-- **temp:** spikes when adrenaline is high so it gets chaotic.
-- **max tokens:** clamps down when adenosine is high so it gives short sleepy answers.
-- **top p:** lowers when norepinephrine is high so it gets hyper focused.
+## Getting Started
 
-it also pops up a **matplotlib dashboard** so u can literally watch kanfais brain activity move in real time on graphs.
+make sure u got python (3.8+) and the rust compiler installed. 
 
-## training 
-we trained a custom LoRA on kaggle using 8,000 raw reddit comments so it talks like a cynical teenager. u can toggle this on or off in the `app.py` script if u want the normal qwen 1.5b base model instead.
-
-## getting started
-
-make sure u got python and rust installed.
-
+### 1. Install stuff
 ```powershell
-# 1. install stuff
 pip install -r requirements.txt
-
-# 2. compile the rust engine (this is mandatory)
-cd emotion_engine
-maturin develop --release
-
-# 3. boot up kanfai
-cd ..
-python app.py
+pip install --upgrade maturin
 ```
 
-have fun. be nice to him or he'll get depressed and hangry.
+### 2. Compile the Rust Engine (Mandatory)
+we need to compile the biological engine into a native C-library for python to use.
+```powershell
+cd emotion_engine
+# forces compilation even if u are using newer python versions (like 3.14)
+$env:PYO3_USE_ABI3_FORWARD_COMPATIBILITY="1"
+python -m maturin develop --release
+cd ..
+```
+
+### 3. Boot up Kanfai
+```powershell
+python app.py
+```
+*(note: the first time u run this, it will download the 1.5B Qwen model from huggingface, which takes about 3-4 GB of space. make sure u have room!)*
+
+have fun playing with him. be nice or he will get depressed and hangry. 
