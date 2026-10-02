@@ -32,48 +32,19 @@ tokenizer = AutoTokenizer.from_pretrained(model_id)
 # using bfloat16 so it doesnt crash my pc
 model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.bfloat16).to("cpu")
 
-# setting up the matplotlib graphs for the chemicals
-plt.ion()
-fig, axs = plt.subplots(2, 2, figsize=(14, 10))
-fig.canvas.manager.set_window_title("20-Chemical Visualization Matrix")
-fig.suptitle("Real-time Neurochemical Status", fontsize=16)
+# --- TERMINAL UI SETUP ---
+try:
+    from terminal_ui import TerminalUI
+    ui = TerminalUI()
+except ImportError:
+    print("Please pip install rich matplotlib")
+    sys.exit(1)
 
-# groupin the chemicals together for the 4 plots
-groups = {
-    "Excitatory & Drive": ["dopamine", "norepinephrine", "glutamate", "histamine", "adrenaline"],
-    "Inhibitory & Mood": ["serotonin", "gaba", "glycine", "prolactin", "dhea"],
-    "Stress & Survival": ["cortisol", "oxytocin", "vasopressin", "endorphin", "acetylcholine"],
-    "Metabolic & Sleep": ["adenosine", "melatonin", "ghrelin", "leptin", "insulin"]
-}
+# initialize the mathematical vector brain
+from semantic_engine import SemanticAnalyzer
+analyzer = SemanticAnalyzer(model, tokenizer)
 
-history = {k: {chem: [] for chem in v} for k, v in groups.items()}
-time_steps = []
-
-def update_plot(state_dict: Dict[str, float], step: int):
-    time_steps.append(step)
-    
-    for ax in axs.flat:
-        ax.clear()
-        
-    for idx, (title, chemicals) in enumerate(groups.items()):
-        row = idx // 2
-        col = idx % 2
-        ax = axs[row, col]
-        ax.set_title(title)
-        ax.set_ylim(0, 1.05)
-        ax.grid(True, linestyle='--', alpha=0.6)
-        
-        for chem in chemicals:
-            history[title][chem].append(state_dict[chem])
-            ax.plot(time_steps, history[title][chem], label=chem.capitalize(), marker='o', markersize=4)
-        
-        ax.legend(loc="upper left", fontsize="x-small", bbox_to_anchor=(1.02, 1))
-    
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.draw()
-    plt.pause(0.01)
-
-def get_llm_params(state_dict: Dict[str, float]):
+def get_llm_params(state_dict):
     # defualts for generation
     temperature = 0.4
     max_new_tokens = 150
@@ -97,7 +68,6 @@ def get_llm_params(state_dict: Dict[str, float]):
     if norepinephrine > 0.6:
         top_p = max(0.1, 1.0 - norepinephrine)
 
-    # added repetition penalty cuz small models loop like crazy
     return {
         "temperature": temperature,
         "max_new_tokens": max_new_tokens,
@@ -107,7 +77,7 @@ def get_llm_params(state_dict: Dict[str, float]):
         "pad_token_id": tokenizer.eos_token_id
     }
 
-def get_system_prompt(state_dict: Dict[str, float]):
+def get_system_prompt(state_dict):
     prompt = (
         "You are Kanfai, a 17-year-old (in simulated years) digital entity living inside a terminal. "
         "You have a very distinct personality: you are introverted, highly analytical, secretly very empathetic, and you love dark humor. "
@@ -122,7 +92,6 @@ def get_system_prompt(state_dict: Dict[str, float]):
         "Your personality stays the same, but your CURRENT MOOD is completely dictated by the chemicals below. Synthesize your personality with these chemicals to react naturally. Do NOT talk about the numbers.\n\n"
     )
     
-    # feed the raw data directly to the llm!
     prompt += "Excitatory & Drive (Energy/Motivation):\n"
     prompt += f"- Dopamine (Reward/Desire): {state_dict.get('dopamine', 0.5):.2f}/1.0\n"
     prompt += f"- Norepinephrine (Focus/Stress): {state_dict.get('norepinephrine', 0.3):.2f}/1.0\n"
@@ -148,51 +117,49 @@ def get_system_prompt(state_dict: Dict[str, float]):
     
     return prompt
 
-print("=========================================")
-print("Welcome to the Emotion Engine Chat.")
-print("Type 'quit' or 'exit' to stop.")
-print("=========================================")
 step_count = 0
-
-# initial plot state
-update_plot(state.get_state(), step_count)
-
-# initialize the mathematical vector brain
-from semantic_engine import SemanticAnalyzer
-analyzer = SemanticAnalyzer(model, tokenizer)
-print("Semantic Embedding Engine Online.")
+ui.update_plot(state.get_state(), step_count)
+semantic_enabled = True
 
 while True:
     try:
-        user_input = input("\nYou: ")
+        user_input = ui.get_input().strip()
     except EOFError:
         break
+        
+    # --- COMMAND HANDLER ---
+    if user_input.startswith("/"):
+        command = user_input.lower()
+        if command in ["/exit", "/quit", "/q"]:
+            print("Shutting down Kanfai OS... Flushing memory...")
+            break
+        elif command == "/semantic":
+            semantic_enabled = not semantic_enabled
+            status = "ONLINE" if semantic_enabled else "OFFLINE"
+            print(f"[SYSTEM] Semantic Vector Engine is now {status}.")
+            continue
+        else:
+            print(f"[SYSTEM] Unknown command: {command}")
+            continue
     
-    if user_input.lower() in ["quit", "exit"]:
-        break
+    if not user_input:
+        continue
         
     # --- SEMANTIC VECTOR ANALYSIS ---
-    scores = analyzer.analyze(user_input)
-    
-    # Calculate the baseline vector distance to find what stands out
-    baseline = sum(scores.values()) / max(1, len(scores))
-    top_emotion, top_score = max(scores.items(), key=lambda x: x[1])
-    
     rust_feed = user_input
-    # If the top emotion is significantly higher than the baseline average, it's a true match
-    if top_score > baseline * 1.03: 
-        # Translate the math category into a keyword the Rust engine already understands
-        rust_triggers = {
-            "anger": "angry",
-            "joy": "happy",
-            "focus": "logic",
-            "sadness": "sad",
-            "hunger": "hungry",
-            "lazy": "relax",
-            "motivation": "goal",
-            "sleep": "tired"
-        }
-        rust_feed += f" {rust_triggers[top_emotion]}"
+    
+    if semantic_enabled:
+        scores = analyzer.analyze(user_input)
+        baseline = sum(scores.values()) / max(1, len(scores))
+        top_emotion, top_score = max(scores.items(), key=lambda x: x[1])
+        
+        if top_score > baseline * 1.03: 
+            rust_triggers = {
+                "anger": "angry", "joy": "happy", "focus": "logic",
+                "sadness": "sad", "hunger": "hungry", "lazy": "relax",
+                "motivation": "goal", "sleep": "tired"
+            }
+            rust_feed += f" {rust_triggers[top_emotion]}"
         
     # 1. evaluate user input n shift values using rust
     state.stimulate(rust_feed)
@@ -200,7 +167,7 @@ while True:
     step_count += 1
     
     # 2. update the live graphs
-    update_plot(current_state, step_count)
+    ui.update_plot(current_state, step_count)
     
     # 3. calc llm params dynamically based on chemicals
     gen_params = get_llm_params(current_state)
@@ -214,18 +181,13 @@ while True:
     text_prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
     inputs = tokenizer(text_prompt, return_tensors="pt").to("cpu")
     
-    # 4. live text streaming so it looks cool
     streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
-    gen_kwargs = dict(
-        **inputs,
-        streamer=streamer,
-        **gen_params
-    )
+    gen_kwargs = dict(**inputs, streamer=streamer, **gen_params)
     
     thread = threading.Thread(target=model.generate, kwargs=gen_kwargs)
     thread.start()
     
-    print("AI: ", end="", flush=True)
+    ui.print_ai_start()
     for new_text in streamer:
-        print(new_text, end="", flush=True)
-    print()
+        ui.print_ai_chunk(new_text)
+    ui.print_ai_end()
