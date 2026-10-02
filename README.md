@@ -1,4 +1,4 @@
-# Kanfai: Biologically Accurate AI 🧠
+# Kanfai: Biologically Accurate AI 
 
 yo! welcome to the **kanfai** project by NGSTRIKER. i built this cuz i got bored of normal ai being so fake and wanted to see what happens if we give an ai an actual simulated brain chemistry. 
 
