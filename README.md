@@ -18,7 +18,7 @@ the semantic engine pipes its findings directly into a blazing-fast **Rust** mat
 - **threats/loss:** spikes cortisol and drops serotonin.
 - **metabolic decay:** chemicals slowly clear out every turn, while sleep chemicals (adenosine/melatonin) naturally build up.
 
-### 3. The Uncensored Consciousness (Qwen 2.5 1.5B)
+### 3. The Uncensored model (Qwen 2.5 1.5B)
 we use `thirdeyeai/Qwen2.5-1.5B-Instruct-uncensored`. it is CRITICAL that we use an "abliterated" / uncensored model. normal models have heavy RLHF (safety training) that forces them to act like polite customer service bots. 
 by using an uncensored model, we completely strip out the "How can I assist you" guardrails. we feed the raw biological matrix (e.g., `Dopamine: 0.8, Cortisol: 0.2`) straight into the system prompt. the LLM reads its own chemical state, synthesizes it with its teenage personality sheet, and acts out the emotions flawlessly.
 
