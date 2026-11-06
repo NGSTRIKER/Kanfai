@@ -2,7 +2,7 @@ import os
 import torch
 import random
 from datasets import load_dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, DataCollatorForLanguageModeling
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, default_data_collator
 from peft import LoraConfig, get_peft_model
 
 # 1. define the model and output name
@@ -78,30 +78,49 @@ def format_prompt(example):
         "What are your thoughts?",
         "Talk to me."
     ]
-    messages = [
+    user_msg = random.choice(user_prompts)
+    prompt_messages = [
         {"role": "system", "content": sys_prompt},
-        {"role": "user", "content": random.choice(user_prompts)},
-        {"role": "assistant", "content": example["text"]} 
+        {"role": "user", "content": user_msg},
     ]
-    text = tokenizer.apply_chat_template(messages, tokenize=False)
-    
-    # tokenize the text manualy to bypass hf bugs 
-    tokenized = tokenizer(
-        text,
-        truncation=True,
-        max_length=256,
-        padding="max_length"
+    full_messages = prompt_messages + [
+        {"role": "assistant", "content": example["text"]}
+    ]
+
+    prompt_text = tokenizer.apply_chat_template(
+        prompt_messages, tokenize=False, add_generation_prompt=True
     )
-    
-    # return without "labels" so it doesnt crash into goemotions existing "labels" colum
-    return {"input_ids": tokenized["input_ids"], "attention_mask": tokenized["attention_mask"]}
+    full_text = tokenizer.apply_chat_template(full_messages, tokenize=False)
+
+    prompt_ids = tokenizer(
+        prompt_text, truncation=True, max_length=256, add_special_tokens=False
+    )["input_ids"]
+    full_tokenized = tokenizer(
+        full_text, truncation=True, max_length=256, add_special_tokens=False
+    )
+
+    input_ids = full_tokenized["input_ids"]
+    seq_len = len(input_ids)
+    prompt_len = min(len(prompt_ids), seq_len)
+    pad_len = 256 - seq_len
+
+    # Mask system/user prompt tokens and padding tokens with -100 while preserving the assistant's EOS token
+    labels = [-100] * prompt_len + input_ids[prompt_len:] + [-100] * pad_len
+    padded_input_ids = input_ids + [tokenizer.pad_token_id] * pad_len
+    attention_mask = [1] * seq_len + [0] * pad_len
+
+    return {
+        "input_ids": padded_input_ids,
+        "attention_mask": attention_mask,
+        "text_labels": labels,
+    }
 
 print("Translating raw reddit emotions to kanfai's biological states and tokenizing...")
 # map n remove all old columns 
 dataset = dataset.map(format_prompt, remove_columns=dataset.column_names)
 
-# now its safe to add the new labels for the ai to train on
-dataset = dataset.map(lambda x: {"labels": x["input_ids"]})
+# Rename text_labels -> labels after go_emotions' original 'labels' column is removed
+dataset = dataset.rename_column("text_labels", "labels")
 
 # 6. training arguments
 training_args = TrainingArguments(
@@ -116,14 +135,12 @@ training_args = TrainingArguments(
     optim="adamw_torch",
 )
 
-# 7. data collator & trainer 
-data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
-
+# 7. data collator & trainer (use default_data_collator so our pre-masked labels and EOS token are preserved)
 trainer = Trainer(
     model=model,
     train_dataset=dataset,
     args=training_args,
-    data_collator=data_collator,
+    data_collator=default_data_collator,
 )
 
 print("\nStarting training!")
