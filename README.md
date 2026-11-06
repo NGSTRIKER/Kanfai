@@ -71,7 +71,7 @@ For an in-depth mathematical breakdown, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
-## ⚡ Google Colab (A100 GPU)
+##  Google Colab (A100 GPU)
 
 You can run Kanfai on an **A100 GPU** in Google Colab using the included notebook:
 1. Open **[kanfai_colab.ipynb](kanfai_colab.ipynb)** in Google Colab.
